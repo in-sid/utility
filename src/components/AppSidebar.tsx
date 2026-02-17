@@ -4,11 +4,11 @@
 import * as React from "react";
 import { 
   FileText, 
-  Receipt, 
   Settings,
   HelpCircle,
   FileSpreadsheet,
-  BookOpen
+  BookOpen,
+  FileStack
 } from "lucide-react";
 
 import {
@@ -40,6 +40,11 @@ const navItems = [
     title: "Rent Receipts",
     icon: FileSpreadsheet,
     disabled: true,
+  },
+  {
+    id: "merge-pdf",
+    title: "Merge PDF",
+    icon: FileStack,
   },
 ];
 

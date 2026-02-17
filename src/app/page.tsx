@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import DriverSalaryGenerator from "@/components/DriverSalaryGenerator";
 import BookBillGenerator from "@/components/BookBillGenerator";
+import PdfMerger from "@/components/PdfMerger";
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState("driver-salary");
@@ -16,6 +17,8 @@ export default function Home() {
         return <DriverSalaryGenerator />;
       case "book-bills":
         return <BookBillGenerator />;
+      case "merge-pdf":
+        return <PdfMerger />;
       default:
         return <DriverSalaryGenerator />;
     }
@@ -25,6 +28,7 @@ export default function Home() {
     switch (activeSection) {
       case "driver-salary": return "Driver Salary";
       case "book-bills": return "Book Bills";
+      case "merge-pdf": return "Merge PDF";
       default: return "Dashboard";
     }
   };
