@@ -8,7 +8,8 @@ import {
   HelpCircle,
   FileSpreadsheet,
   BookOpen,
-  FileStack
+  FileStack,
+  LayoutDashboard
 } from "lucide-react";
 
 import {
@@ -25,6 +26,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const navItems = [
+  {
+    id: "dashboard",
+    title: "Dashboard",
+    icon: LayoutDashboard,
+  },
   {
     id: "driver-salary",
     title: "Driver Salary",
@@ -57,7 +63,7 @@ export function AppSidebar({ activeSection, onSelect }: AppSidebarProps) {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="border-b h-14 flex items-center px-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => onSelect("dashboard")}>
           <div className="bg-primary p-1.5 rounded-lg">
             <FileText className="text-primary-foreground h-5 w-5" />
           </div>
@@ -68,7 +74,7 @@ export function AppSidebar({ activeSection, onSelect }: AppSidebarProps) {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Documents</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
