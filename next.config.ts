@@ -1,8 +1,19 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* Enable static export for GitHub Pages */
+  /* 
+     Enable static export for GitHub Pages.
+     This generates a standalone 'out' folder with HTML/CSS/JS.
+  */
   output: 'export',
+  
+  /* 
+     GitHub Pages doesn't handle clean URLs well. 
+     This ensures /about becomes /about/index.html 
+  */
+  trailingSlash: true,
+
   /* Image optimization must be disabled for static exports */
   images: {
     unoptimized: true,
