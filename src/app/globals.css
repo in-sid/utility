@@ -67,18 +67,28 @@
   .no-print {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
+  
+  body, html, main, .container {
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
   }
-  body {
-    background: white;
-  }
+
   .print-container {
     padding: 0;
     margin: 0;
-    box-shadow: none;
-    border: none;
+    box-shadow: none !important;
+    border: none !important;
     page-break-after: always;
     break-after: page;
+  }
+
+  /* Reset any card backgrounds or shadows during print */
+  .card, .tabs-content {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
   }
 }

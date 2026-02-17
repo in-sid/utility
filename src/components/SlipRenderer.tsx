@@ -56,11 +56,11 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
   const activePeriods = getPeriods();
 
   return (
-    <div className="space-y-8 print:space-y-0">
+    <div className="space-y-8 print:space-y-0 w-full">
       {activePeriods.map((period, idx) => (
         <div 
           key={idx} 
-          className="bg-white p-8 md:p-12 min-h-[500px] flex flex-col print-container text-[#1a1a1a] font-body leading-tight border-4 border-double border-gray-300 relative overflow-hidden break-after-page print:mb-0 mb-8"
+          className="bg-white p-8 md:p-12 min-h-[500px] flex flex-col print-container text-[#1a1a1a] font-body leading-tight border-4 border-double border-gray-300 relative overflow-hidden break-after-page print:mb-0 mb-8 max-w-4xl mx-auto"
         >
           {/* Header Date */}
           <div className="flex justify-end mb-4">
@@ -69,8 +69,8 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
             </div>
           </div>
 
-          {/* Title */}
-          <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase border-b border-black pb-2 self-center w-fit px-12">
+          {/* Title - Removed Underline/Border */}
+          <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase self-center w-fit px-12">
             Driver Salary Receipt
           </h2>
 
