@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool, Truck } from "lucide-react";
 import { SalarySlipInput, SalaryItem } from '@/lib/salary-types';
-import { addMonths, format, endOfMonth, subDays, startOfMonth } from 'date-fns';
+import { addMonths, format, endOfMonth, subDays, startOfMonth, setMonth, setDate } from 'date-fns';
 
 interface SalaryFormProps {
   onGenerate: (data: SalarySlipInput) => void;
@@ -18,18 +17,24 @@ interface SalaryFormProps {
 }
 
 export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps) {
-  const [companyName, setCompanyName] = useState("Skyline Logistics Ltd.");
-  const [companyAddress, setCompanyAddress] = useState("123 Fleet Way, Transport Hub, TH1 5ST");
-  const [employerName, setEmployerName] = useState("Siddharth Saxena");
-  const [period, setPeriod] = useState<'Monthly' | 'Quarterly' | 'Custom'>("Monthly");
-  const [paymentPeriodStart, setPaymentPeriodStart] = useState(format(startOfMonth(new Date()), 'yyyy-MM-dd'));
-  const [paymentPeriodEnd, setPaymentPeriodEnd] = useState(format(endOfMonth(new Date()), 'yyyy-MM-dd'));
-  const [startDateFY, setStartDateFY] = useState("2024-04-01");
+  // Determine default FY dates (April to March)
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const fyStart = startOfMonth(setMonth(setDate(new Date(currentYear, 3, 1), 1), 3)); // April 1st
+  const fyEnd = endOfMonth(setMonth(setDate(new Date(currentYear + 1, 2, 1), 1), 2)); // March 31st next year
+
+  const [companyName, setCompanyName] = useState("");
+  const [companyAddress, setCompanyAddress] = useState("");
+  const [employerName, setEmployerName] = useState("");
+  const [period, setPeriod] = useState<'Monthly' | 'Quarterly' | 'Custom'>("Quarterly");
+  const [paymentPeriodStart, setPaymentPeriodStart] = useState(format(fyStart, 'yyyy-MM-dd'));
+  const [paymentPeriodEnd, setPaymentPeriodEnd] = useState(format(subDays(addMonths(fyStart, 3), 1), 'yyyy-MM-dd'));
+  const [startDateFY, setStartDateFY] = useState(format(fyStart, 'yyyy-MM-dd'));
   const [billNumber, setBillNumber] = useState("");
-  const [driverName, setDriverName] = useState("Avadesh Kumar");
-  const [vehicleNumber, setVehicleNumber] = useState("HR26CZ0662");
+  const [driverName, setDriverName] = useState("");
+  const [vehicleNumber, setVehicleNumber] = useState("");
   const [salaryBreakdown, setSalaryBreakdown] = useState<SalaryItem[]>([
-    { item: "Total Salary", amount: 24000 },
+    { item: "Total Salary", amount: 0 },
   ]);
   const [signatureDataUri, setSignatureDataUri] = useState<string | null>(null);
   const [stampDataUri, setStampDataUri] = useState<string | null>(null);
@@ -46,8 +51,6 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
     } else if (period === 'Quarterly') {
       end = subDays(addMonths(start, 3), 1);
     } else {
-      // For Custom, we don't auto-override if they already set something, 
-      // but let's default it if it's empty
       return;
     }
 
@@ -87,7 +90,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
       companyName,
       companyAddress,
       employerName,
-      billDate: paymentPeriodStart, // Strict requirement: Bill Date = Period Start
+      billDate: paymentPeriodStart,
       period,
       paymentPeriodStart,
       paymentPeriodEnd,
@@ -115,11 +118,11 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
               <Label htmlFor="employerName">Employer Name (Paid By)</Label>
-              <Input id="employerName" value={employerName} onChange={(e) => setEmployerName(e.target.value)} required />
+              <Input id="employerName" value={employerName} onChange={(e) => setEmployerName(e.target.value)} required placeholder="Enter employer name" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="companyName">Company Name (Optional)</Label>
-              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Enter company name" />
             </div>
           </CardContent>
         </Card>
@@ -147,10 +150,8 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="billDate" className="text-muted-foreground">Derived Bill Date</Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-muted/30 text-muted-foreground text-sm flex items-center">
-                  {paymentPeriodStart || "Set Start Date"}
-                </div>
+                <Label htmlFor="startDateFY">FY Start Date</Label>
+                <Input id="startDateFY" type="date" value={startDateFY} onChange={(e) => setStartDateFY(e.target.value)} required />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
