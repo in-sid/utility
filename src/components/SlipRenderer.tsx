@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { SalarySlipLayout, SalarySlipInput } from '@/lib/salary-types';
-import { cn } from '@/lib/utils';
-import { addMonths, startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
+import { addMonths, endOfMonth, format, parseISO } from 'date-fns';
 
 interface SlipRendererProps {
   layout: SalarySlipLayout;
@@ -55,6 +54,17 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
 
   const activePeriods = getPeriods();
 
+  // The input data.totalSalary is assumed to be the monthly rate.
+  // For Quarterly mode, each receipt represents 3 months.
+  const getAmountForPeriod = () => {
+    if (data.period === 'Quarterly') {
+      return data.totalSalary * 3;
+    }
+    return data.totalSalary;
+  };
+
+  const receiptAmount = getAmountForPeriod();
+
   return (
     <div className="space-y-8 print:space-y-0 w-full">
       {activePeriods.map((period, idx) => (
@@ -62,14 +72,14 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
           key={idx} 
           className="bg-white p-8 md:p-12 min-h-[500px] flex flex-col print-container text-[#1a1a1a] font-body leading-tight border-4 border-double border-gray-300 relative overflow-hidden break-after-page print:mb-0 mb-8 max-w-4xl mx-auto"
         >
-          {/* Header Date */}
+          {/* Header Date - Same as Period Start */}
           <div className="flex justify-end mb-4">
             <div className="text-sm">
               <span className="font-bold">Date:</span> {formatValue(period.start, 'date')}
             </div>
           </div>
 
-          {/* Title - Removed Underline/Border */}
+          {/* Title */}
           <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase self-center w-fit px-12">
             Driver Salary Receipt
           </h2>
@@ -77,7 +87,7 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
           {/* Body */}
           <div className="space-y-4 mb-8">
             <p className="text-lg leading-relaxed text-justify indent-12">
-              This is to certify that Mr./Ms. <span className="font-bold">{data.employerName}</span> have paid <span className="font-bold">{formatValue(data.totalSalary, 'amount')}</span> to driver Mr/Ms <span className="font-bold">{data.driverName}</span> towards salary of the period <span className="font-bold">{formatValue(period.start, 'date')} to {formatValue(period.end, 'date')}</span> (Acknowledged receipt enclosed). I also declare that the driver is exclusively utilized for official purpose only.
+              This is to certify that Mr./Ms. <span className="font-bold">{data.employerName}</span> have paid <span className="font-bold">{formatValue(receiptAmount, 'amount')}</span> to driver Mr/Ms <span className="font-bold">{data.driverName}</span> towards salary of the period <span className="font-bold">{formatValue(period.start, 'date')} to {formatValue(period.end, 'date')}</span> (Acknowledged receipt enclosed). I also declare that the driver is exclusively utilized for official purpose only.
             </p>
             <p className="text-lg leading-relaxed text-justify">
               Please reimburse the above amount. I further declare that what is stated above is correct and true.

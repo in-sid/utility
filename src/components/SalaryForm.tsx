@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool, Truck } from "lucide-react";
 import { SalarySlipInput, SalaryItem } from '@/lib/salary-types';
-import { format, startOfMonth, setMonth, setDate, endOfMonth } from 'date-fns';
 
 interface SalaryFormProps {
   onGenerate: (data: SalarySlipInput) => void;
@@ -17,7 +16,7 @@ interface SalaryFormProps {
 }
 
 export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps) {
-  // Default FY 2025-26 as requested
+  // FY 2025-26 as requested
   const defaultStart = "2025-04-01";
   const defaultEnd = "2026-03-31";
 
@@ -32,7 +31,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
   const [driverName, setDriverName] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
   const [salaryBreakdown, setSalaryBreakdown] = useState<SalaryItem[]>([
-    { item: "Total Salary", amount: 0 },
+    { item: "Basic Salary", amount: 0 },
   ]);
   const [signatureDataUri, setSignatureDataUri] = useState<string | null>(null);
   const [stampDataUri, setStampDataUri] = useState<string | null>(null);
@@ -124,7 +123,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Monthly">Monthly</SelectItem>
-                    <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Quarterly">Quarterly (Calculates 3x monthly)</SelectItem>
                     <SelectItem value="Custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
@@ -242,8 +241,8 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                     required
                   />
                 </div>
-                <div className="w-40 space-y-2">
-                  <Label>Amount (₹)</Label>
+                <div className="w-48 space-y-2">
+                  <Label>Amount (₹ per month)</Label>
                   <Input 
                     type="number" 
                     value={item.amount} 
@@ -271,7 +270,10 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           <Separator className="my-6" />
           
           <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl">
-            <span className="font-bold text-lg">Net Payable</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-lg">Total Monthly Rate</span>
+              <span className="text-xs text-muted-foreground">This is the base monthly amount</span>
+            </div>
             <span className="font-bold text-2xl text-primary">
               {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(salaryBreakdown.reduce((sum, item) => sum + item.amount, 0))}
             </span>
