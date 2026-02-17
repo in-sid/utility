@@ -9,7 +9,9 @@ import SlipRenderer from './SlipRenderer';
 import { SalarySlipInput } from '@/lib/salary-types';
 import { useToast } from '@/hooks/use-toast';
 
-// Initial state with requested defaults
+const DEFAULT_STAMP = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB4PSI1IiB5PSI1IiB3aWR0aD0iOTAiIGhlaWdodD0iOTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2RjMjYyNiIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtZGFzaGFycmF5PSI0Ii8+PHRleHQgeD0iNTAlIiB5PSI0NSUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iI2RjMjYyNiI+UkVWRU5VRTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjY1JSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEwIiBmaWxsPSIjZGMyNjI2Ij5TVEFNUDwvdGV4dD48L3N2Zz4=";
+const DEFAULT_SIGNATURE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMTAwIj48dGV4dCB4PSIxMCIgeT0iNjAiIGZvbnQtZmFtaWx5PSInQnJ1c2ggU2NyaXB0IE1UJywgY3Vyc2l2ZSIgZm9udC1zaXplPSI0MCIgZmlsbD0iIzI1NjNlYiI+Sm9obiBEb2U8L3RleHQ+PC9zdmc+";
+
 const DEFAULT_FORM_DATA: SalarySlipInput = {
   companyName: "",
   companyAddress: "",
@@ -26,8 +28,8 @@ const DEFAULT_FORM_DATA: SalarySlipInput = {
     { item: "Basic Salary", amount: 0 },
   ],
   totalSalary: 0,
-  signatureDataUri: null,
-  stampDataUri: null,
+  signatureDataUri: DEFAULT_SIGNATURE,
+  stampDataUri: DEFAULT_STAMP,
 };
 
 export default function DrivePayApp() {
@@ -45,7 +47,6 @@ export default function DrivePayApp() {
     setIsGenerating(true);
     setFormData(data);
     
-    // Simulate minor processing for UX
     setTimeout(() => {
       try {
         setHasGeneratedOnce(true);
