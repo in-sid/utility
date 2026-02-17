@@ -48,6 +48,7 @@ export default function BookBillGenerator() {
 
   const handleGenerate = async (data: BookBillInput) => {
     setIsGenerating(true);
+    // Explicitly update the form data before switching tabs
     setFormData(data);
     
     setTimeout(() => {

@@ -4,6 +4,7 @@
 import React from 'react';
 import { BookBillInput } from '@/lib/book-bill-types';
 import { format, parseISO } from 'date-fns';
+import { Package } from "lucide-react";
 
 interface BookBillRendererProps {
   data: BookBillInput;
@@ -42,7 +43,7 @@ export default function BookBillRenderer({ data }: BookBillRendererProps) {
           </div>
 
           {/* Details Table */}
-          <div className="border border-gray-200 rounded-lg p-6 mb-8 grid grid-cols-3 gap-8">
+          <div className="border border-gray-200 rounded-lg p-6 mb-8 grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Ship To */}
             <div className="space-y-1">
               <h3 className="text-[14px] font-bold mb-2">Ship to</h3>
@@ -75,11 +76,7 @@ export default function BookBillRenderer({ data }: BookBillRendererProps) {
                   <span>Shipping:</span>
                   <span>{currencyFormat(data.summary.shipping)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>Total:</span>
-                  <span>{currencyFormat(total)}</span>
-                </div>
-                <div className="flex justify-between font-bold pt-1">
+                <div className="flex justify-between font-bold pt-1 border-t mt-1">
                   <span>Grand Total:</span>
                   <span>{currencyFormat(total)}</span>
                 </div>
