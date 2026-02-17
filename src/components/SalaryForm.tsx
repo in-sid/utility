@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool, Truck } from "lucide-react";
-import { SalarySlipInput, SalaryItem } from '@/lib/salary-types';
+import { SalarySlipInput } from '@/lib/salary-types';
 
 interface SalaryFormProps {
   initialData: SalarySlipInput;

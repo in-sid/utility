@@ -1,9 +1,10 @@
 import type {Metadata} from 'next';
 import './globals.css';
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 export const metadata: Metadata = {
-  title: 'DrivePay - Driver Salary Slip Generator',
-  description: 'Generate professional driver salary slips with ease using DrivePay.',
+  title: 'Bill Generator - Professional Document Utility',
+  description: 'Generate professional utility bills and receipts with ease.',
 };
 
 export default function RootLayout({
@@ -19,7 +20,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased bg-background text-foreground">
-        {children}
+        <SidebarProvider defaultOpen={true}>
+          {children}
+        </SidebarProvider>
       </body>
     </html>
   );
