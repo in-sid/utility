@@ -64,53 +64,53 @@
 }
 
 @media print {
-  /* Hide UI elements */
+  /* Hide all non-receipt elements */
   .no-print, 
   header, 
   footer, 
   nav, 
   button, 
-  [role="tablist"] {
+  [role="tablist"],
+  [role="tab"] {
     display: none !important;
   }
 
-  /* Reset layout containers */
-  body, html, main, .container {
+  /* Reset layout for full page print */
+  body, html {
     background: white !important;
-    padding: 0 !important;
     margin: 0 !important;
+    padding: 0 !important;
     width: 100% !important;
-    min-height: auto !important;
     height: auto !important;
-    display: block !important;
   }
 
-  /* Ensure the preview container is visible and clean */
-  .TabsContent {
-    display: block !important;
-    padding: 0 !important;
+  main, .container {
     margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+  }
+
+  /* Force the receipt content to be visible */
+  [data-state="active"].TabsContent {
+    display: block !important;
   }
 
   .print-container {
-    padding: 2cm !important; /* Standardized print margin */
     margin: 0 !important;
+    padding: 1.5cm !important;
     box-shadow: none !important;
     border: none !important;
-    page-break-after: always;
-    break-after: page;
     width: 100% !important;
     max-width: none !important;
     min-height: auto !important;
+    page-break-after: always;
+    break-after: page;
+    background: white !important;
   }
 
-  /* Force white background for the receipts */
-  .bg-white {
-    background-color: white !important;
-  }
-
-  /* Hide tabs that aren't the active preview */
-  [data-state="inactive"] {
-    display: none !important;
+  /* Remove any browser headers/footers space if possible */
+  @page {
+    margin: 0;
   }
 }

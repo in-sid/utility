@@ -3,10 +3,10 @@
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Download, Calculator, FileText, Car } from "lucide-react";
+import { Download, Calculator, FileText, Car, Printer } from "lucide-react";
 import SalaryForm from './SalaryForm';
 import SlipRenderer from './SlipRenderer';
-import { SalarySlipInput, SalarySlipLayout } from '@/lib/salary-types';
+import { SalarySlipInput } from '@/lib/salary-types';
 import { useToast } from '@/hooks/use-toast';
 
 // Initial state with requested defaults
@@ -52,13 +52,13 @@ export default function DrivePayApp() {
         setActiveTab("preview");
         toast({
           title: "Success",
-          description: "Salary slips generated!",
+          description: "Receipts generated for preview.",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to generate salary slips.",
+          description: "Failed to generate preview.",
         });
       } finally {
         setIsGenerating(false);
@@ -85,7 +85,7 @@ export default function DrivePayApp() {
         <div className="flex gap-2">
           {hasGeneratedOnce && (
             <Button onClick={handlePrint} variant="default" className="gap-2 shadow-sm rounded-xl">
-              <Download className="h-4 w-4" />
+              <Printer className="h-4 w-4" />
               Print / Save as PDF
             </Button>
           )}
@@ -113,7 +113,7 @@ export default function DrivePayApp() {
           />
         </TabsContent>
 
-        <TabsContent value="preview" className="print:block print:p-0">
+        <TabsContent value="preview" className="print:block">
           {hasGeneratedOnce && (
             <div className="print:p-0">
               <SlipRenderer data={formData} />
