@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Calculator, FileText, Car } from "lucide-react";
 import SalaryForm from './SalaryForm';
@@ -10,39 +9,56 @@ import SlipRenderer from './SlipRenderer';
 import { SalarySlipInput, SalarySlipLayout } from '@/lib/salary-types';
 import { useToast } from '@/hooks/use-toast';
 
-// Static layout generator
-const generateStaticLayout = (data: SalarySlipInput): SalarySlipLayout => {
-  return {
-    overallDesignGoal: "Professional Driver Salary Receipt following exact regulatory format.",
-    sections: [] // Simplified as renderer handles internal logic now
-  };
+// Initial state with requested defaults
+const DEFAULT_FORM_DATA: SalarySlipInput = {
+  companyName: "",
+  companyAddress: "",
+  employerName: "",
+  billDate: "2025-04-01",
+  period: 'Quarterly',
+  paymentPeriodStart: "2025-04-01",
+  paymentPeriodEnd: "2026-03-31",
+  startDateFY: "2025-04-01",
+  billNumber: null,
+  driverName: "",
+  vehicleNumber: "",
+  salaryBreakdown: [
+    { item: "Basic Salary", amount: 0 },
+  ],
+  totalSalary: 0,
+  signatureDataUri: null,
+  stampDataUri: null,
 };
 
 export default function DrivePayApp() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [layoutData, setLayoutData] = useState<SalarySlipLayout | null>(null);
-  const [formData, setFormData] = useState<SalarySlipInput | null>(null);
+  const [formData, setFormData] = useState<SalarySlipInput>(DEFAULT_FORM_DATA);
   const [activeTab, setActiveTab] = useState("input");
+  const [hasGeneratedOnce, setHasGeneratedOnce] = useState(false);
+
+  const handleUpdateData = (data: SalarySlipInput) => {
+    setFormData(data);
+  };
 
   const handleGenerate = async (data: SalarySlipInput) => {
     setIsGenerating(true);
     setFormData(data);
     
+    // Simulate minor processing for UX
     setTimeout(() => {
       try {
-        const result = generateStaticLayout(data);
-        setLayoutData(result);
+        setHasGeneratedOnce(true);
         setActiveTab("preview");
         toast({
           title: "Success",
-          description: "Salary slip generated!",
+          description: "Salary slips generated!",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to generate salary slip.",
+          description: "Failed to generate salary slips.",
         });
       } finally {
         setIsGenerating(false);
@@ -67,7 +83,7 @@ export default function DrivePayApp() {
           </div>
         </div>
         <div className="flex gap-2">
-          {layoutData && (
+          {hasGeneratedOnce && (
             <Button onClick={handlePrint} variant="default" className="gap-2 shadow-sm rounded-xl">
               <Download className="h-4 w-4" />
               Print / Save as PDF
@@ -82,20 +98,25 @@ export default function DrivePayApp() {
             <Calculator className="h-4 w-4" />
             Receipt Details
           </TabsTrigger>
-          <TabsTrigger value="preview" disabled={!layoutData} className="rounded-xl flex gap-2 h-full text-base">
+          <TabsTrigger value="preview" disabled={!hasGeneratedOnce} className="rounded-xl flex gap-2 h-full text-base">
             <FileText className="h-4 w-4" />
             Live Preview
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="input" className="no-print">
-          <SalaryForm onGenerate={handleGenerate} isGenerating={isGenerating} />
+          <SalaryForm 
+            initialData={formData} 
+            onGenerate={handleGenerate} 
+            onChange={handleUpdateData}
+            isGenerating={isGenerating} 
+          />
         </TabsContent>
 
-        <TabsContent value="preview" className="print:block">
-          {layoutData && formData && (
+        <TabsContent value="preview" className="print:block print:p-0">
+          {hasGeneratedOnce && (
             <div className="print:p-0">
-              <SlipRenderer layout={layoutData} data={formData} />
+              <SlipRenderer data={formData} />
             </div>
           )}
         </TabsContent>

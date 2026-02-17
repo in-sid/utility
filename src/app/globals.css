@@ -64,31 +64,53 @@
 }
 
 @media print {
-  .no-print {
+  /* Hide UI elements */
+  .no-print, 
+  header, 
+  footer, 
+  nav, 
+  button, 
+  [role="tablist"] {
     display: none !important;
   }
-  
+
+  /* Reset layout containers */
   body, html, main, .container {
     background: white !important;
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    display: block !important;
+  }
+
+  /* Ensure the preview container is visible and clean */
+  .TabsContent {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   .print-container {
-    padding: 0;
-    margin: 0;
+    padding: 2cm !important; /* Standardized print margin */
+    margin: 0 !important;
     box-shadow: none !important;
     border: none !important;
     page-break-after: always;
     break-after: page;
+    width: 100% !important;
+    max-width: none !important;
+    min-height: auto !important;
   }
 
-  /* Reset any card backgrounds or shadows during print */
-  .card, .tabs-content {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
+  /* Force white background for the receipts */
+  .bg-white {
+    background-color: white !important;
+  }
+
+  /* Hide tabs that aren't the active preview */
+  [data-state="inactive"] {
+    display: none !important;
   }
 }

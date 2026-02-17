@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { SalarySlipLayout, SalarySlipInput } from '@/lib/salary-types';
+import { SalarySlipInput } from '@/lib/salary-types';
 import { addMonths, endOfMonth, format, parseISO } from 'date-fns';
 
 interface SlipRendererProps {
-  layout: SalarySlipLayout;
   data: SalarySlipInput;
 }
 
-export default function SlipRenderer({ layout, data }: SlipRendererProps) {
+export default function SlipRenderer({ data }: SlipRendererProps) {
   const [rotations, setRotations] = useState<{ sig: number; stamp: number }[]>([]);
 
   useEffect(() => {
@@ -33,7 +32,6 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
     return String(value);
   };
 
-  // Logic to split the data into multiple periods if quarterly
   const getPeriods = () => {
     if (data.period !== 'Quarterly') {
       return [{ start: data.paymentPeriodStart, end: data.paymentPeriodEnd }];
@@ -53,17 +51,8 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
   };
 
   const activePeriods = getPeriods();
-
-  // The input data.totalSalary is assumed to be the monthly rate.
-  // For Quarterly mode, each receipt represents 3 months.
-  const getAmountForPeriod = () => {
-    if (data.period === 'Quarterly') {
-      return data.totalSalary * 3;
-    }
-    return data.totalSalary;
-  };
-
-  const receiptAmount = getAmountForPeriod();
+  const monthlySalary = data.salaryBreakdown.reduce((sum, item) => sum + item.amount, 0);
+  const receiptAmount = data.period === 'Quarterly' ? monthlySalary * 3 : monthlySalary;
 
   return (
     <div className="space-y-8 print:space-y-0 w-full">
@@ -72,14 +61,14 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
           key={idx} 
           className="bg-white p-8 md:p-12 min-h-[500px] flex flex-col print-container text-[#1a1a1a] font-body leading-tight border-4 border-double border-gray-300 relative overflow-hidden break-after-page print:mb-0 mb-8 max-w-4xl mx-auto"
         >
-          {/* Header Date - Same as Period Start */}
+          {/* Header Date */}
           <div className="flex justify-end mb-4">
             <div className="text-sm">
               <span className="font-bold">Date:</span> {formatValue(period.start, 'date')}
             </div>
           </div>
 
-          {/* Title */}
+          {/* Title - No underlines/borders */}
           <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase self-center w-fit px-12">
             Driver Salary Receipt
           </h2>
@@ -94,7 +83,7 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
             </p>
           </div>
 
-          {/* Details Section */}
+          {/* Details Section - No underlines */}
           <div className="grid grid-cols-2 gap-8 mb-12">
             <div className="flex gap-2 items-baseline">
               <span className="font-bold">Vehicle Number:</span>
