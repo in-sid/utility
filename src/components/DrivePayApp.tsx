@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -7,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Download, Calculator, FileText, Car } from "lucide-react";
 import SalaryForm from './SalaryForm';
 import SlipRenderer from './SlipRenderer';
-import { GenerateIntelligentSalarySlipLayoutInput, GenerateIntelligentSalarySlipLayoutOutput } from '@/ai/flows/generate-intelligent-salary-slip-layout';
+import { SalarySlipInput, SalarySlipLayout } from '@/lib/salary-types';
 import { useToast } from '@/hooks/use-toast';
 
-// Static layout generator to replace AI flow, fulfilling the "No Gemini Key" requirement
-const generateStaticLayout = (data: GenerateIntelligentSalarySlipLayoutInput): GenerateIntelligentSalarySlipLayoutOutput => {
+// Static layout generator to fulfill the "No Gemini Key" requirement
+const generateStaticLayout = (data: SalarySlipInput): SalarySlipLayout => {
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
     return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -103,15 +104,15 @@ const generateStaticLayout = (data: GenerateIntelligentSalarySlipLayoutInput): G
 export default function DrivePayApp() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
-  const [layoutData, setLayoutData] = useState<GenerateIntelligentSalarySlipLayoutOutput | null>(null);
-  const [formData, setFormData] = useState<GenerateIntelligentSalarySlipLayoutInput | null>(null);
+  const [layoutData, setLayoutData] = useState<SalarySlipLayout | null>(null);
+  const [formData, setFormData] = useState<SalarySlipInput | null>(null);
   const [activeTab, setActiveTab] = useState("input");
 
-  const handleGenerate = async (data: GenerateIntelligentSalarySlipLayoutInput) => {
+  const handleGenerate = async (data: SalarySlipInput) => {
     setIsGenerating(true);
     setFormData(data);
     
-    // Simulate a brief processing time for UX, but perform generation locally
+    // Perform generation locally (No AI key required)
     setTimeout(() => {
       try {
         const result = generateStaticLayout(data);
@@ -119,18 +120,18 @@ export default function DrivePayApp() {
         setActiveTab("preview");
         toast({
           title: "Success",
-          description: "Salary slip generated locally!",
+          description: "Salary slip generated!",
         });
       } catch (error) {
         toast({
           variant: "destructive",
           title: "Error",
-          description: "Failed to generate salary slip. Please check your inputs.",
+          description: "Failed to generate salary slip.",
         });
       } finally {
         setIsGenerating(false);
       }
-    }, 600);
+    }, 400);
   };
 
   const handlePrint = () => {
