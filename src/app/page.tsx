@@ -1,3 +1,9 @@
+import DrivePayApp from '@/components/DrivePayApp';
+
 export default function Home() {
-  return <></>;
+  return (
+    <main className="min-h-screen">
+      <DrivePayApp />
+    </main>
+  );
 }
