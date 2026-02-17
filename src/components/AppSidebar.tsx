@@ -1,13 +1,14 @@
+
 "use client";
 
 import * as React from "react";
 import { 
   FileText, 
   Receipt, 
-  LayoutDashboard,
   Settings,
   HelpCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  BookOpen
 } from "lucide-react";
 
 import {
@@ -25,23 +26,29 @@ import {
 
 const navItems = [
   {
+    id: "driver-salary",
     title: "Driver Salary",
     icon: FileText,
-    active: true,
   },
   {
-    title: "Expense Bills",
-    icon: Receipt,
-    disabled: true,
+    id: "book-bills",
+    title: "Book Bills",
+    icon: BookOpen,
   },
   {
+    id: "rent-receipts",
     title: "Rent Receipts",
     icon: FileSpreadsheet,
     disabled: true,
   },
 ];
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  activeSection: string;
+  onSelect: (id: string) => void;
+}
+
+export function AppSidebar({ activeSection, onSelect }: AppSidebarProps) {
   return (
     <Sidebar variant="sidebar" collapsible="icon">
       <SidebarHeader className="border-b h-14 flex items-center px-4">
@@ -60,12 +67,13 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton 
-                    isActive={item.active} 
+                    isActive={activeSection === item.id} 
                     tooltip={item.title}
                     disabled={item.disabled}
                     className={item.disabled ? "opacity-50 cursor-not-allowed" : ""}
+                    onClick={() => !item.disabled && onSelect(item.id)}
                   >
                     <item.icon />
                     <span>{item.title}</span>
