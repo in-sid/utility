@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, Upload, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool } from "lucide-react";
+import { Plus, Trash2, Upload, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool, Truck } from "lucide-react";
 import { GenerateIntelligentSalarySlipLayoutInput } from '@/ai/flows/generate-intelligent-salary-slip-layout';
 
 interface SalaryFormProps {
@@ -18,16 +18,17 @@ interface SalaryFormProps {
 export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps) {
   const [companyName, setCompanyName] = useState("Skyline Logistics Ltd.");
   const [companyAddress, setCompanyAddress] = useState("123 Fleet Way, Transport Hub, TH1 5ST");
+  const [employerName, setEmployerName] = useState("Siddharth Saxena");
   const [billDate, setBillDate] = useState(new Date().toISOString().split('T')[0]);
-  const [period, setPeriod] = useState<"Monthly" | "Quarterly">("Monthly");
+  const [period, setPeriod] = useState<"Monthly" | "Quarterly" | "Custom">("Monthly");
   const [paymentPeriodStart, setPaymentPeriodStart] = useState("");
   const [paymentPeriodEnd, setPaymentPeriodEnd] = useState("");
   const [startDateFY, setStartDateFY] = useState("2024-04-01");
   const [billNumber, setBillNumber] = useState("");
-  const [driverName, setDriverName] = useState("");
+  const [driverName, setDriverName] = useState("Avadesh Kumar");
+  const [vehicleNumber, setVehicleNumber] = useState("HR26CZ0662");
   const [salaryBreakdown, setSalaryBreakdown] = useState<{ item: string; amount: number }[]>([
-    { item: "Basic Salary", amount: 2500 },
-    { item: "Transport Allowance", amount: 300 },
+    { item: "Total Salary", amount: 24000 },
   ]);
   const [signatureDataUri, setSignatureDataUri] = useState<string | null>(null);
   const [stampDataUri, setStampDataUri] = useState<string | null>(null);
@@ -64,6 +65,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
     onGenerate({
       companyName,
       companyAddress,
+      employerName,
       billDate,
       period,
       paymentPeriodStart,
@@ -71,6 +73,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
       startDateFY,
       billNumber: billNumber || null,
       driverName,
+      vehicleNumber,
       salaryBreakdown,
       totalSalary,
       signatureDataUri,
@@ -85,17 +88,17 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-xl flex items-center gap-2">
               <Building className="h-5 w-5 text-primary" />
-              Company Details
+              Entity Details
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <Label htmlFor="companyName">Company Name</Label>
-              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} required />
+              <Label htmlFor="employerName">Employer Name (Paid By)</Label>
+              <Input id="employerName" value={employerName} onChange={(e) => setEmployerName(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="companyAddress">Company Address</Label>
-              <Input id="companyAddress" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} required />
+              <Label htmlFor="companyName">Company Name (Optional)</Label>
+              <Input id="companyName" value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
             </div>
           </CardContent>
         </Card>
@@ -114,7 +117,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                 <Input id="billDate" type="date" value={billDate} onChange={(e) => setBillDate(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="period">Period</Label>
+                <Label htmlFor="period">Period Type</Label>
                 <Select value={period} onValueChange={(val) => setPeriod(val as any)}>
                   <SelectTrigger id="period">
                     <SelectValue placeholder="Select period" />
@@ -122,6 +125,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                   <SelectContent>
                     <SelectItem value="Monthly">Monthly</SelectItem>
                     <SelectItem value="Quarterly">Quarterly</SelectItem>
+                    <SelectItem value="Custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -136,10 +140,6 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                 <Input id="paymentPeriodEnd" type="date" value={paymentPeriodEnd} onChange={(e) => setPaymentPeriodEnd(e.target.value)} required />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="startDateFY">Start Date of FY</Label>
-              <Input id="startDateFY" type="date" value={startDateFY} onChange={(e) => setStartDateFY(e.target.value)} required />
-            </div>
           </CardContent>
         </Card>
 
@@ -153,11 +153,14 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
               <Label htmlFor="driverName">Driver Full Name</Label>
-              <Input id="driverName" placeholder="e.g. John Doe" value={driverName} onChange={(e) => setDriverName(e.target.value)} required />
+              <Input id="driverName" placeholder="e.g. Avadesh Kumar" value={driverName} onChange={(e) => setDriverName(e.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="billNumber">Bill Number (Optional)</Label>
-              <Input id="billNumber" placeholder="e.g. SL-2024-001" value={billNumber} onChange={(e) => setBillNumber(e.target.value)} />
+              <Label htmlFor="vehicleNumber">Vehicle Number</Label>
+              <div className="relative">
+                <Truck className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input id="vehicleNumber" className="pl-9" placeholder="e.g. HR26CZ0662" value={vehicleNumber} onChange={(e) => setVehicleNumber(e.target.value)} required />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -166,54 +169,43 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           <CardHeader className="bg-primary/10">
             <CardTitle className="text-xl flex items-center gap-2">
               <PenTool className="h-5 w-5 text-primary" />
-              Uploads
+              Authentication
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <Label>Signature (Optional)</Label>
-              <div className="flex items-center gap-4">
-                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setSignatureDataUri)} className="hidden" id="signature-upload" />
-                <Label htmlFor="signature-upload" className="flex-1 cursor-pointer">
-                  <div className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-                    {signatureDataUri ? (
-                      <img src={signatureDataUri} alt="Signature Preview" className="h-12 object-contain" />
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Click to upload signature</span>
-                      </>
-                    )}
-                  </div>
-                </Label>
-                {signatureDataUri && (
-                  <Button variant="ghost" size="icon" onClick={() => setSignatureDataUri(null)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                )}
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Company Stamp (Optional)</Label>
-              <div className="flex items-center gap-4">
-                <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setStampDataUri)} className="hidden" id="stamp-upload" />
-                <Label htmlFor="stamp-upload" className="flex-1 cursor-pointer">
-                  <div className="border-2 border-dashed rounded-xl p-4 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
-                    {stampDataUri ? (
-                      <img src={stampDataUri} alt="Stamp Preview" className="h-12 object-contain" />
-                    ) : (
-                      <>
-                        <Upload className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Click to upload company stamp</span>
-                      </>
-                    )}
-                  </div>
-                </Label>
-                {stampDataUri && (
-                  <Button variant="ghost" size="icon" onClick={() => setStampDataUri(null)}>
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                )}
+              <Label>Signature / Revenue Stamp (Optional)</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setSignatureDataUri)} className="hidden" id="signature-upload" />
+                  <Label htmlFor="signature-upload" className="cursor-pointer">
+                    <div className="border-2 border-dashed rounded-xl p-4 h-24 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
+                      {signatureDataUri ? (
+                        <img src={signatureDataUri} alt="Signature" className="h-full object-contain" />
+                      ) : (
+                        <>
+                          <PenTool className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-[10px] text-center text-muted-foreground leading-tight">Upload Signature</span>
+                        </>
+                      )}
+                    </div>
+                  </Label>
+                </div>
+                <div className="space-y-2">
+                  <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setStampDataUri)} className="hidden" id="stamp-upload" />
+                  <Label htmlFor="stamp-upload" className="cursor-pointer">
+                    <div className="border-2 border-dashed rounded-xl p-4 h-24 flex flex-col items-center justify-center gap-2 hover:bg-muted/50 transition-colors">
+                      {stampDataUri ? (
+                        <img src={stampDataUri} alt="Stamp" className="h-full object-contain" />
+                      ) : (
+                        <>
+                          <StampIcon className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-[10px] text-center text-muted-foreground leading-tight">Upload Stamp</span>
+                        </>
+                      )}
+                    </div>
+                  </Label>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -224,9 +216,8 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
         <CardHeader className="bg-primary/10">
           <CardTitle className="text-xl flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            Salary Breakdown
+            Salary Details
           </CardTitle>
-          <CardDescription>Add basic salary, allowances, or deductions.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-6">
           <div className="space-y-4">
@@ -241,8 +232,8 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                     required
                   />
                 </div>
-                <div className="w-32 space-y-2">
-                  <Label>Amount</Label>
+                <div className="w-40 space-y-2">
+                  <Label>Amount (₹)</Label>
                   <Input 
                     type="number" 
                     value={item.amount} 
@@ -263,21 +254,21 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
             ))}
             <Button type="button" variant="outline" className="w-full rounded-xl border-dashed" onClick={handleAddSalaryItem}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Item
+              Add Component
             </Button>
           </div>
           
           <Separator className="my-6" />
           
           <div className="flex justify-between items-center bg-primary/5 p-4 rounded-xl">
-            <span className="font-bold text-lg">Total Salary</span>
+            <span className="font-bold text-lg">Net Payable</span>
             <span className="font-bold text-2xl text-primary">
-              {new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(salaryBreakdown.reduce((sum, item) => sum + item.amount, 0))}
+              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(salaryBreakdown.reduce((sum, item) => sum + item.amount, 0))}
             </span>
           </div>
 
           <Button type="submit" className="w-full h-14 rounded-xl text-lg shadow-lg" disabled={isGenerating}>
-            {isGenerating ? "Optimizing Layout..." : "Generate Professional Salary Slip"}
+            {isGenerating ? "Formatting Receipt..." : "Generate Official Receipt"}
           </Button>
         </CardContent>
       </Card>
