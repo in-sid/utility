@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { SalarySlipLayout, SalarySlipInput } from '@/lib/salary-types';
 import { cn } from '@/lib/utils';
+import { addMonths, startOfMonth, endOfMonth, format, parseISO } from 'date-fns';
 
 interface SlipRendererProps {
   layout: SalarySlipLayout;
@@ -10,13 +11,15 @@ interface SlipRendererProps {
 }
 
 export default function SlipRenderer({ layout, data }: SlipRendererProps) {
-  const [sigRotation, setSigRotation] = useState(0);
-  const [stampRotation, setStampRotation] = useState(0);
+  const [rotations, setRotations] = useState<{ sig: number; stamp: number }[]>([]);
 
   useEffect(() => {
-    // Random rotation between -5 and +5 degrees
-    setSigRotation(Math.floor(Math.random() * 11) - 5);
-    setStampRotation(Math.floor(Math.random() * 11) - 5);
+    // Generate random rotations for up to 4 receipts
+    const newRotations = Array.from({ length: 4 }).map(() => ({
+      sig: Math.floor(Math.random() * 11) - 5,
+      stamp: Math.floor(Math.random() * 11) - 5,
+    }));
+    setRotations(newRotations);
   }, [data]);
 
   const formatValue = (value: any, type: string) => {
@@ -25,148 +28,127 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
       return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Number(value));
     }
     if (type === 'date') {
-      return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+      const date = typeof value === 'string' ? parseISO(value) : value;
+      return format(date, 'dd-MMM-yyyy');
     }
     return String(value);
   };
 
+  // Logic to split the data into multiple periods if quarterly
+  const getPeriods = () => {
+    if (data.period !== 'Quarterly') {
+      return [{ start: data.paymentPeriodStart, end: data.paymentPeriodEnd }];
+    }
+
+    const baseStart = parseISO(data.paymentPeriodStart);
+    const periods = [];
+    for (let i = 0; i < 4; i++) {
+      const qStart = addMonths(baseStart, i * 3);
+      const qEnd = endOfMonth(addMonths(qStart, 2));
+      periods.push({
+        start: format(qStart, 'yyyy-MM-dd'),
+        end: format(qEnd, 'yyyy-MM-dd')
+      });
+    }
+    return periods;
+  };
+
+  const activePeriods = getPeriods();
+
   return (
-    <div className="bg-white p-12 md:p-20 min-h-[800px] flex flex-col print-container text-[#1a1a1a] font-serif leading-relaxed border-8 border-double border-gray-200 relative overflow-hidden">
-      {layout.sections.map((section, sIdx) => (
+    <div className="space-y-8 print:space-y-0">
+      {activePeriods.map((period, idx) => (
         <div 
-          key={sIdx} 
-          className={cn(
-            "mb-8", 
-            section.layoutHint === "two columns" ? "flex justify-between items-center" : 
-            section.layoutHint === "bottom-auth" ? "relative mt-auto pt-24 min-h-[160px]" :
-            section.layoutHint === "right-align" ? "flex justify-end" : "flex flex-col gap-4"
-          )}
+          key={idx} 
+          className="bg-white p-8 md:p-12 min-h-[500px] flex flex-col print-container text-[#1a1a1a] font-serif leading-tight border-4 border-double border-gray-300 relative overflow-hidden break-after-page print:mb-0 mb-8"
         >
-          {section.title && (
-            <h2 className="text-3xl font-bold text-center mb-10 tracking-tight uppercase border-b-2 border-black pb-4 self-center w-fit px-8">
-              {section.title}
-            </h2>
-          )}
+          {/* Header Date */}
+          <div className="flex justify-end mb-4">
+            <div className="text-sm">
+              <span className="font-bold">Date:</span> {formatValue(period.start, 'date')}
+            </div>
+          </div>
+
+          {/* Title */}
+          <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase border-b border-black pb-2 self-center w-fit px-12">
+            Driver Salary Receipt
+          </h2>
+
+          {/* Body */}
+          <div className="space-y-4 mb-8">
+            <p className="text-lg leading-relaxed text-justify indent-12">
+              This is to certify that Mr./Ms. <span className="font-bold border-b border-black px-1">{data.employerName}</span> have paid <span className="font-bold border-b border-black px-1">{formatValue(data.totalSalary, 'amount')}</span> to driver Mr/Ms <span className="font-bold border-b border-black px-1">{data.driverName}</span> towards salary of the period <span className="font-bold border-b border-black px-1">{formatValue(period.start, 'date')} to {formatValue(period.end, 'date')}</span> (Acknowledged receipt enclosed). I also declare that the driver is exclusively utilized for official purpose only.
+            </p>
+            <p className="text-lg leading-relaxed text-justify">
+              Please reimburse the above amount. I further declare that what is stated above is correct and true.
+            </p>
+          </div>
+
+          {/* Details Section */}
+          <div className="grid grid-cols-2 gap-8 mb-12">
+            <div className="flex gap-2 items-baseline">
+              <span className="font-bold">Vehicle Number:</span>
+              <span className="font-bold border-b border-black flex-1 px-2">{data.vehicleNumber}</span>
+            </div>
+            <div className="flex gap-2 items-baseline">
+              <span className="font-bold">Period:</span>
+              <span className="border-b border-black flex-1 px-2">{formatValue(period.start, 'date')} to {formatValue(period.end, 'date')}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 items-baseline mb-12">
+            <span className="font-bold">Driver Name:</span>
+            <span className="font-bold border-b border-black flex-1 px-2">{data.driverName}</span>
+          </div>
+
+          {/* Auth Section - Overlapping style */}
+          <div className="mt-auto flex justify-between items-end relative pb-4">
+            <div className="flex flex-col items-center min-w-[150px]">
+              <div className="h-20 w-20 border border-gray-200 flex items-center justify-center text-[10px] text-gray-300">
+                PHOTO SPACE
+              </div>
+            </div>
+
+            <div className="relative min-w-[250px] h-32 flex items-center justify-center">
+              {/* Stamp (Base) */}
+              <div className="absolute left-4 bottom-4 w-24 h-24 flex items-center justify-center">
+                {data.stampDataUri ? (
+                  <img 
+                    src={data.stampDataUri} 
+                    alt="Stamp" 
+                    className="w-full h-full object-contain"
+                    style={{ transform: `rotate(${rotations[idx]?.stamp || 0}deg)` }}
+                  />
+                ) : (
+                  <div className="w-20 h-20 border-2 border-red-200 flex items-center justify-center text-[8px] text-red-300 uppercase font-bold text-center">
+                    Revenue<br/>Stamp
+                  </div>
+                )}
+              </div>
+
+              {/* Signature (Overlapping) */}
+              <div className="absolute right-4 bottom-6 w-48 h-24 z-10 pointer-events-none">
+                {data.signatureDataUri && (
+                  <img 
+                    src={data.signatureDataUri} 
+                    alt="Signature" 
+                    className="w-full h-full object-contain mix-blend-multiply opacity-95"
+                    style={{ transform: `rotate(${rotations[idx]?.sig || 0}deg)` }}
+                  />
+                )}
+              </div>
+              
+              <div className="absolute bottom-0 w-full border-t border-black pt-1 text-center">
+                <span className="text-xs font-bold uppercase tracking-widest">Signature & Stamp</span>
+              </div>
+            </div>
+          </div>
           
-          <div className={cn(
-            "w-full",
-            section.layoutHint === "two columns" ? "flex justify-between w-full" : 
-            section.layoutHint === "bottom-auth" ? "flex justify-between items-end w-full" : "space-y-6"
-          )}>
-            {section.elements.map((element, eIdx) => {
-              // Paragraph
-              if (element.type === "paragraph") {
-                return (
-                  <p key={eIdx} className="text-xl leading-[2] text-justify mb-6 indent-12">
-                    {element.content}
-                  </p>
-                );
-              }
-
-              // Image
-              if (element.type === "image") {
-                const imgData = data[element.key as keyof SalarySlipInput];
-                
-                // Special handling for signature overlapping stamp in the bottom-auth section
-                if (section.layoutHint === "bottom-auth") {
-                   if (element.key === 'stampDataUri') {
-                      return (
-                        <div key={eIdx} className="relative flex flex-col items-center min-w-[180px]">
-                           <div className="h-28 w-28 flex items-center justify-center">
-                              {imgData ? (
-                                <img 
-                                  src={imgData as string} 
-                                  alt="Stamp" 
-                                  className="h-full w-full object-contain"
-                                  style={{ transform: `rotate(${stampRotation}deg)` }}
-                                />
-                              ) : (
-                                <div className="h-24 w-24 border border-dashed border-gray-300 flex items-center justify-center text-[10px] text-gray-400">
-                                  STAMP
-                                </div>
-                              )}
-                           </div>
-                           <div className="w-full border-t border-black pt-1 text-center mt-2">
-                             <span className="text-sm font-bold uppercase">Revenue Stamp</span>
-                           </div>
-                        </div>
-                      );
-                   }
-                   if (element.key === 'signatureDataUri') {
-                      return (
-                        <div key={eIdx} className="absolute right-0 bottom-0 flex flex-col items-center min-w-[200px]">
-                            <div className="relative h-32 w-48 -mb-12 z-10 pointer-events-none">
-                               {imgData && (
-                                 <img 
-                                   src={imgData as string} 
-                                   alt="Signature" 
-                                   className="h-full w-full object-contain opacity-90"
-                                   style={{ transform: `rotate(${sigRotation}deg)` }}
-                                 />
-                               )}
-                            </div>
-                            <div className="w-full border-t border-black pt-1 text-center">
-                              <span className="text-sm font-bold uppercase">Signature</span>
-                            </div>
-                        </div>
-                      );
-                   }
-                }
-
-                if (!imgData) {
-                   return (
-                    <div key={eIdx} className="flex flex-col items-center justify-center border-t border-black pt-2 min-w-[200px]">
-                      <div className="h-20 w-40 border border-dashed border-gray-300 mb-2 flex items-center justify-center text-[10px] text-gray-400">
-                        {element.label} Space
-                      </div>
-                      <span className="text-sm font-bold uppercase">{element.label}</span>
-                    </div>
-                  );
-                }
-                return (
-                  <div key={eIdx} className="flex flex-col items-center min-w-[200px]">
-                    <div className="relative h-28 w-48 mb-2">
-                      <img src={imgData as string} alt={element.label || "Image"} className="h-full w-full object-contain" />
-                    </div>
-                    <div className="w-full border-t border-black pt-1 text-center">
-                      <span className="text-sm font-bold uppercase">{element.label}</span>
-                    </div>
-                  </div>
-                );
-              }
-
-              // Field
-              if (element.type === 'text' || element.type === 'amount' || element.type === 'date') {
-                let value = data[element.key as keyof SalarySlipInput];
-                if (element.key === 'period') {
-                  value = `${formatValue(data.paymentPeriodStart, 'date')} to ${formatValue(data.paymentPeriodEnd, 'date')}`;
-                }
-
-                return (
-                  <div key={eIdx} className={cn(
-                    "flex items-baseline gap-2",
-                    element.alignment === 'right' ? 'justify-end' : 'justify-start'
-                  )}>
-                    <span className="text-lg font-bold whitespace-nowrap">{element.label}:</span>
-                    <span className={cn(
-                      "text-lg min-w-[100px]",
-                      element.emphasize ? "font-bold border-b-2 border-black px-2" : "font-normal px-2 border-b border-dotted border-gray-400"
-                    )}>
-                      {formatValue(value, element.type)}
-                    </span>
-                  </div>
-                );
-              }
-
-              return null;
-            })}
+          <div className="mt-4 text-[10px] text-gray-400 text-center uppercase tracking-widest no-print">
+            System Generated Receipt - DrivePay
           </div>
         </div>
       ))}
-      
-      <div className="mt-auto border-t border-black/10 pt-8 text-[12px] text-gray-400 text-center uppercase tracking-[0.3em] no-print">
-        Official Document - DrivePay System Generated
-      </div>
     </div>
   );
 }

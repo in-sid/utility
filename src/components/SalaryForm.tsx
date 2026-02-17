@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Plus, Trash2, Calendar, Building, CreditCard, User, Stamp as StampIcon, PenTool, Truck } from "lucide-react";
 import { SalarySlipInput, SalaryItem } from '@/lib/salary-types';
-import { addMonths, format, endOfMonth, subDays, startOfMonth, setMonth, setDate } from 'date-fns';
+import { format, startOfMonth, setMonth, setDate, endOfMonth } from 'date-fns';
 
 interface SalaryFormProps {
   onGenerate: (data: SalarySlipInput) => void;
@@ -17,19 +17,17 @@ interface SalaryFormProps {
 }
 
 export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps) {
-  // Determine default FY dates (April to March)
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const fyStart = startOfMonth(setMonth(setDate(new Date(currentYear, 3, 1), 1), 3)); // April 1st
-  const fyEnd = endOfMonth(setMonth(setDate(new Date(currentYear + 1, 2, 1), 1), 2)); // March 31st next year
+  // Default FY 2025-26 as requested
+  const defaultStart = "2025-04-01";
+  const defaultEnd = "2026-03-31";
 
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
   const [employerName, setEmployerName] = useState("");
   const [period, setPeriod] = useState<'Monthly' | 'Quarterly' | 'Custom'>("Quarterly");
-  const [paymentPeriodStart, setPaymentPeriodStart] = useState(format(fyStart, 'yyyy-MM-dd'));
-  const [paymentPeriodEnd, setPaymentPeriodEnd] = useState(format(subDays(addMonths(fyStart, 3), 1), 'yyyy-MM-dd'));
-  const [startDateFY, setStartDateFY] = useState(format(fyStart, 'yyyy-MM-dd'));
+  const [paymentPeriodStart, setPaymentPeriodStart] = useState(defaultStart);
+  const [paymentPeriodEnd, setPaymentPeriodEnd] = useState(defaultEnd);
+  const [startDateFY, setStartDateFY] = useState(defaultStart);
   const [billNumber, setBillNumber] = useState("");
   const [driverName, setDriverName] = useState("");
   const [vehicleNumber, setVehicleNumber] = useState("");
@@ -38,24 +36,6 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
   ]);
   const [signatureDataUri, setSignatureDataUri] = useState<string | null>(null);
   const [stampDataUri, setStampDataUri] = useState<string | null>(null);
-
-  // Sync End Date based on Start Date and Period Type
-  useEffect(() => {
-    if (!paymentPeriodStart) return;
-    
-    const start = new Date(paymentPeriodStart);
-    let end: Date;
-
-    if (period === 'Monthly') {
-      end = endOfMonth(start);
-    } else if (period === 'Quarterly') {
-      end = subDays(addMonths(start, 3), 1);
-    } else {
-      return;
-    }
-
-    setPaymentPeriodEnd(format(end, 'yyyy-MM-dd'));
-  }, [paymentPeriodStart, period]);
 
   const handleAddSalaryItem = () => {
     setSalaryBreakdown([...salaryBreakdown, { item: "", amount: 0 }]);
@@ -167,8 +147,6 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
                   value={paymentPeriodEnd} 
                   onChange={(e) => setPaymentPeriodEnd(e.target.value)} 
                   required 
-                  readOnly={period !== 'Custom'}
-                  className={period !== 'Custom' ? 'bg-muted/30 cursor-not-allowed' : ''}
                 />
               </div>
             </div>
@@ -206,7 +184,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           </CardHeader>
           <CardContent className="space-y-4 pt-6">
             <div className="space-y-2">
-              <Label>Signature / Revenue Stamp (Optional)</Label>
+              <Label>Signature & Revenue Stamp</Label>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Input type="file" accept="image/*" onChange={(e) => handleFileUpload(e, setSignatureDataUri)} className="hidden" id="signature-upload" />
@@ -300,7 +278,7 @@ export default function SalaryForm({ onGenerate, isGenerating }: SalaryFormProps
           </div>
 
           <Button type="submit" className="w-full h-14 rounded-xl text-lg shadow-lg" disabled={isGenerating}>
-            {isGenerating ? "Processing..." : "Generate Official Receipt"}
+            {isGenerating ? "Processing..." : "Generate Official Receipts"}
           </Button>
         </CardContent>
       </Card>
