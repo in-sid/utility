@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { GenerateIntelligentSalarySlipLayoutOutput, GenerateIntelligentSalarySlipLayoutInput } from '@/ai/flows/generate-intelligent-salary-slip-layout';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from '@/lib/utils';
 
 interface SlipRendererProps {
@@ -23,24 +22,33 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
   };
 
   return (
-    <div className="bg-white p-12 md:p-16 min-h-[600px] flex flex-col print-container text-[#1a1a1a] font-sans">
+    <div className="bg-white p-12 md:p-20 min-h-[800px] flex flex-col print-container text-[#1a1a1a] font-serif leading-relaxed">
       {layout.sections.map((section, sIdx) => (
-        <div key={sIdx} className={cn("mb-6", section.layoutHint === "two columns" ? "grid grid-cols-2 gap-8" : "flex flex-col gap-3")}>
+        <div 
+          key={sIdx} 
+          className={cn(
+            "mb-8", 
+            section.layoutHint === "two columns" ? "flex justify-between items-center" : 
+            section.layoutHint === "bottom-auth" ? "flex justify-between items-end mt-auto pt-12" :
+            section.layoutHint === "right-align" ? "flex justify-end" : "flex flex-col gap-4"
+          )}
+        >
           {section.title && (
-            <h2 className="text-xl font-bold text-center mb-4 tracking-tight">
+            <h2 className="text-2xl font-bold text-center mb-6 tracking-tight uppercase border-b-2 border-black pb-2 self-center">
               {section.title}
             </h2>
           )}
           
           <div className={cn(
             "w-full",
-            section.layoutHint === "inline" ? "flex flex-wrap gap-x-12 gap-y-2" : "space-y-3"
+            section.layoutHint === "two columns" ? "flex justify-between w-full" : 
+            section.layoutHint === "bottom-auth" ? "flex justify-between w-full" : "space-y-4"
           )}>
             {section.elements.map((element, eIdx) => {
               // Handle Paragraph elements
               if ("type" in element && element.type === "paragraph") {
                 return (
-                  <p key={eIdx} className="text-lg leading-relaxed text-justify mb-4">
+                  <p key={eIdx} className="text-lg leading-[1.8] text-justify mb-4 indent-8 first:mt-4">
                     {element.content}
                   </p>
                 );
@@ -49,58 +57,47 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
               // Handle Image elements
               if ("type" in element && element.type === "image") {
                 const imgData = data[element.key as keyof GenerateIntelligentSalarySlipLayoutInput];
-                if (!imgData) return null;
+                if (!imgData) {
+                   return (
+                    <div key={eIdx} className="flex flex-col items-center justify-center border-t border-black pt-2 min-w-[150px]">
+                      <div className="h-16 w-32 border border-dashed border-gray-300 mb-2 flex items-center justify-center text-[10px] text-gray-400">
+                        {element.label} Space
+                      </div>
+                      <span className="text-sm font-bold uppercase">{element.label}</span>
+                    </div>
+                  );
+                }
                 return (
-                  <div key={eIdx} className={cn("flex flex-col relative", element.positionHint === "bottom-right" ? "items-end mt-4" : "mt-2")}>
-                    {element.label && <span className="text-sm font-semibold mb-1">{element.label}:</span>}
-                    <div className="relative h-20 w-40">
+                  <div key={eIdx} className="flex flex-col items-center min-w-[150px]">
+                    <div className="relative h-24 w-40 mb-2">
                       <img src={imgData as string} alt={element.label || "Image"} className="h-full w-full object-contain" />
                     </div>
-                  </div>
-                );
-              }
-
-              // Handle Table elements
-              if ("type" in element && element.type === "salaryBreakdownTable") {
-                return (
-                  <div key={eIdx} className="w-full mt-4">
-                    {element.title && <h4 className="font-semibold mb-2">{element.title}</h4>}
-                    <Table className="border border-black">
-                      <TableHeader className="bg-gray-50">
-                        <TableRow className="border-black">
-                          {element.headers.map((h, i) => (
-                            <TableHead key={i} className={cn("font-bold text-black border-r border-black last:border-0", i === 1 ? "text-right" : "")}>{h}</TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {data.salaryBreakdown.map((item, i) => (
-                          <TableRow key={i} className="border-black">
-                            <TableCell className="border-r border-black">{item.item}</TableCell>
-                            <TableCell className="text-right font-mono border-black">{formatValue(item.amount, 'amount')}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                    <div className="w-full border-t border-black pt-1 text-center">
+                      <span className="text-sm font-bold uppercase">{element.label}</span>
+                    </div>
                   </div>
                 );
               }
 
               // Handle Field elements
               if ("type" in element && (element.type === 'text' || element.type === 'amount' || element.type === 'date')) {
-                const value = data[element.key as keyof GenerateIntelligentSalarySlipLayoutInput];
+                // Special case for Period mapping if it's not a direct key
+                let value = data[element.key as keyof GenerateIntelligentSalarySlipLayoutInput];
+                if (element.key === 'period') {
+                  value = `${formatValue(data.paymentPeriodStart, 'date')} to ${formatValue(data.paymentPeriodEnd, 'date')}`;
+                }
+
                 return (
                   <div key={eIdx} className={cn(
                     "flex items-baseline gap-2",
-                    element.alignment === 'center' ? 'justify-center w-full' :
-                    element.alignment === 'right' ? 'justify-end w-full' : 'justify-start'
+                    element.alignment === 'right' ? 'justify-end' : 'justify-start'
                   )}>
-                    <span className="text-base font-bold whitespace-nowrap">{element.label}:</span>
+                    <span className="text-lg font-bold whitespace-nowrap">{element.label}:</span>
                     <span className={cn(
-                      "text-base",
-                      element.emphasize ? "font-bold" : "font-normal"
+                      "text-lg",
+                      element.emphasize ? "font-bold border-b border-black px-2" : "font-normal px-2 border-b border-dotted border-gray-400"
                     )}>
-                      {formatValue(value, element.type)}
+                      {element.type === 'text' && element.key === 'period' ? value : formatValue(value, element.type)}
                     </span>
                   </div>
                 );
@@ -111,6 +108,11 @@ export default function SlipRenderer({ layout, data }: SlipRendererProps) {
           </div>
         </div>
       ))}
+      
+      {/* Visual Line at the very bottom for receipt feel */}
+      <div className="mt-8 border-t border-black/10 pt-4 text-[10px] text-gray-400 text-center uppercase tracking-widest no-print">
+        Official Receipt - DrivePay System Generated
+      </div>
     </div>
   );
 }

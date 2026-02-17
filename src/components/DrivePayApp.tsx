@@ -2,13 +2,103 @@
 
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Calculator, FileText, Settings, UserCircle, Car, DollarSign } from "lucide-react";
+import { Download, Calculator, FileText, Car } from "lucide-react";
 import SalaryForm from './SalaryForm';
 import SlipRenderer from './SlipRenderer';
-import { GenerateIntelligentSalarySlipLayoutInput, GenerateIntelligentSalarySlipLayoutOutput, generateIntelligentSalarySlipLayout } from '@/ai/flows/generate-intelligent-salary-slip-layout';
+import { GenerateIntelligentSalarySlipLayoutInput, GenerateIntelligentSalarySlipLayoutOutput } from '@/ai/flows/generate-intelligent-salary-slip-layout';
 import { useToast } from '@/hooks/use-toast';
+
+// Static layout generator to replace AI flow, fulfilling the "No Gemini Key" requirement
+const generateStaticLayout = (data: GenerateIntelligentSalarySlipLayoutInput): GenerateIntelligentSalarySlipLayoutOutput => {
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    return new Date(dateStr).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const formattedAmount = new Intl.NumberFormat('en-IN', { 
+    style: 'currency', 
+    currency: 'INR', 
+    maximumFractionDigits: 0 
+  }).format(data.totalSalary);
+
+  const periodText = `${formatDate(data.paymentPeriodStart)} to ${formatDate(data.paymentPeriodEnd)}`;
+
+  return {
+    overallDesignGoal: "Professional Driver Salary Receipt following exact regulatory format.",
+    sections: [
+      {
+        layoutHint: "right-align",
+        elements: [
+          {
+            key: "billDate",
+            label: "Date",
+            type: "date",
+            alignment: "right"
+          }
+        ]
+      },
+      {
+        title: "Driver Salary Receipt",
+        elements: [
+          {
+            type: "paragraph",
+            content: `This is to certify that Mr./Ms. ${data.employerName} have paid ${formattedAmount} to driver Mr/Ms ${data.driverName} towards salary of the period ${periodText} (Acknowledged receipt enclosed). I also declare that the driver is exclusively utilized for official purpose only.`
+          },
+          {
+            type: "paragraph",
+            content: "Please reimburse the above amount. I further declare that what is stated above is correct and true."
+          }
+        ]
+      },
+      {
+        layoutHint: "two columns",
+        elements: [
+          {
+            key: "vehicleNumber",
+            label: "Vehicle Number",
+            type: "text",
+            emphasize: true
+          },
+          {
+            key: "period",
+            label: "Period",
+            type: "text",
+            alignment: "right"
+          }
+        ]
+      },
+      {
+        elements: [
+          {
+            key: "driverName",
+            label: "Driver Name",
+            type: "text",
+            emphasize: true
+          }
+        ]
+      },
+      {
+        layoutHint: "bottom-auth",
+        elements: [
+          {
+            key: "stampDataUri",
+            label: "Revenue Stamp",
+            type: "image",
+            positionHint: "bottom-left"
+          },
+          {
+            key: "signatureDataUri",
+            label: "Signature",
+            type: "image",
+            positionHint: "bottom-right"
+          }
+        ]
+      }
+    ]
+  };
+};
 
 export default function DrivePayApp() {
   const { toast } = useToast();
@@ -20,27 +110,30 @@ export default function DrivePayApp() {
   const handleGenerate = async (data: GenerateIntelligentSalarySlipLayoutInput) => {
     setIsGenerating(true);
     setFormData(data);
-    try {
-      const result = await generateIntelligentSalarySlipLayout(data);
-      setLayoutData(result);
-      setActiveTab("preview");
-      toast({
-        title: "Success",
-        description: "Salary slip generated successfully!",
-      });
-    } catch (error) {
-      console.error("Failed to generate layout:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to generate salary slip layout. Please try again.",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
+    
+    // Simulate a brief processing time for UX, but perform generation locally
+    setTimeout(() => {
+      try {
+        const result = generateStaticLayout(data);
+        setLayoutData(result);
+        setActiveTab("preview");
+        toast({
+          title: "Success",
+          description: "Salary slip generated locally!",
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to generate salary slip. Please check your inputs.",
+        });
+      } finally {
+        setIsGenerating(false);
+      }
+    }, 600);
   };
 
-  const handleDownload = () => {
+  const handlePrint = () => {
     window.print();
   };
 
@@ -53,14 +146,14 @@ export default function DrivePayApp() {
           </div>
           <div>
             <h1 className="text-3xl font-bold tracking-tight font-headline text-foreground">DrivePay</h1>
-            <p className="text-muted-foreground text-sm">Professional Salary Slips for Drivers</p>
+            <p className="text-muted-foreground text-sm">Official Driver Receipts</p>
           </div>
         </div>
         <div className="flex gap-2">
           {layoutData && (
-            <Button onClick={handleDownload} variant="secondary" className="gap-2 shadow-sm">
+            <Button onClick={handlePrint} variant="default" className="gap-2 shadow-sm rounded-xl">
               <Download className="h-4 w-4" />
-              Download Slip
+              Print / Save as PDF
             </Button>
           )}
         </div>
@@ -70,11 +163,11 @@ export default function DrivePayApp() {
         <TabsList className="grid w-full grid-cols-2 mb-8 p-1 bg-muted/50 rounded-2xl h-14">
           <TabsTrigger value="input" className="rounded-xl flex gap-2 h-full text-base">
             <Calculator className="h-4 w-4" />
-            Input Information
+            Receipt Details
           </TabsTrigger>
           <TabsTrigger value="preview" disabled={!layoutData} className="rounded-xl flex gap-2 h-full text-base">
             <FileText className="h-4 w-4" />
-            Slip Preview
+            Live Preview
           </TabsTrigger>
         </TabsList>
 
@@ -101,7 +194,7 @@ export default function DrivePayApp() {
       </div>
 
       <footer className="mt-12 text-center text-muted-foreground text-sm no-print">
-        <p>&copy; {new Date().getFullYear()} DrivePay. Built for reliability and trust.</p>
+        <p>&copy; {new Date().getFullYear()} DrivePay. Professional Utility for Drivers & Employers.</p>
       </footer>
     </div>
   );
